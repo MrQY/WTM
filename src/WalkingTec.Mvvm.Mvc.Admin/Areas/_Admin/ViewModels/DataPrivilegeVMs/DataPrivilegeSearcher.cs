@@ -7,8 +7,8 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
 {
     public enum DpTypeEnum
     {
-        [Display(Name = "GroupDp")]
-        UserGroup,
+        [Display(Name = "RoleDp")]
+        UserRole,
         [Display(Name = "UserDp")]
         User
     }

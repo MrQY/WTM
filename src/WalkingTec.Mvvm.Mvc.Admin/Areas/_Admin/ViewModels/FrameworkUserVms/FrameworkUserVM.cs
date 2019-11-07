@@ -16,15 +16,9 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
         [Display(Name = "Role")]
         public List<Guid> SelectedRolesIDs { get; set; }
 
-        [JsonIgnore]
-        public List<ComboSelectListItem> AllGroups { get; set; }
-        [Display(Name = "Group")]
-        public List<Guid> SelectedGroupIDs { get; set; }
-
-
         public FrameworkUserVM()
         {
-            SetInclude(x => x.UserRoles, x=>x.UserGroups);
+            SetInclude(x => x.UserRoles);
         }
 
         /// <summary>
@@ -43,8 +37,6 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
             {
                 SelectedRolesIDs = Entity.UserRoles.Select(x => x.RoleId).ToList();
                 AllRoles = DC.Set<FrameworkRole>().GetSelectListItems(LoginUserInfo.DataPrivileges, null, y => y.RoleName);
-                SelectedGroupIDs = Entity.UserGroups.Select(x => x.GroupId).ToList();
-                AllGroups = DC.Set<FrameworkGroup>().GetSelectListItems(LoginUserInfo.DataPrivileges, null, y => y.GroupName);
             }
 
         }
@@ -54,7 +46,6 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
             if (ControllerName.Contains("WalkingTec.Mvvm.Mvc.Admin.Controllers"))
             {
                 AllRoles = DC.Set<FrameworkRole>().GetSelectListItems(LoginUserInfo.DataPrivileges, null, y => y.RoleName);
-                AllGroups = DC.Set<FrameworkGroup>().GetSelectListItems(LoginUserInfo.DataPrivileges, null, y => y.GroupName);
             }
         }
 
@@ -63,19 +54,11 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
             if (ControllerName.Contains("WalkingTec.Mvvm.Mvc.Admin.Controllers"))
             {
                 Entity.UserRoles = new List<FrameworkUserRole>();
-                Entity.UserGroups = new List<FrameworkUserGroup>();
                 if (SelectedRolesIDs != null)
                 {
                     foreach (var roleid in SelectedRolesIDs)
                     {
                         Entity.UserRoles.Add(new FrameworkUserRole { RoleId = roleid });
-                    }
-                }
-                if (SelectedGroupIDs != null)
-                {
-                    foreach (var groupid in SelectedGroupIDs)
-                    {
-                        Entity.UserGroups.Add(new FrameworkUserGroup { GroupId = groupid });
                     }
                 }
             }
@@ -89,14 +72,9 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
             if (ControllerName.Contains("WalkingTec.Mvvm.Mvc.Admin.Controllers"))
             {
                 Entity.UserRoles = new List<FrameworkUserRole>();
-                Entity.UserGroups = new List<FrameworkUserGroup>();
                 if (SelectedRolesIDs != null)
                 {
                     SelectedRolesIDs.ForEach(x => Entity.UserRoles.Add(new FrameworkUserRole { ID = Guid.NewGuid(), UserId = Entity.ID, RoleId = x }));
-                }
-                if (SelectedGroupIDs != null)
-                {
-                    SelectedGroupIDs.ForEach(x => Entity.UserGroups.Add(new FrameworkUserGroup { ID = Guid.NewGuid(), UserId = Entity.ID, GroupId = x }));
                 }
             }
             await base.DoEditAsync(updateAllFields);

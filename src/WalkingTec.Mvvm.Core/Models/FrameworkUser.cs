@@ -46,18 +46,18 @@ namespace WalkingTec.Mvvm.Core
         [Display(Name = "CellPhone")]
         [RegularExpression("^[1][3,4,5,7,8][0-9]{9}$", ErrorMessage = "{0}formaterror")]
         public string CellPhone { get; set; }
+//
+//        [Display(Name = "HomePhone")]
+//        [StringLength(30, ErrorMessage = "{0}stringmax{1}")]
+//        public string HomePhone { get; set; }
 
-        [Display(Name = "HomePhone")]
-        [StringLength(30, ErrorMessage = "{0}stringmax{1}")]
-        public string HomePhone { get; set; }
+//        [Display(Name = "Address")]
+//        [StringLength(200, ErrorMessage = "{0}stringmax{1}")]
+//        public string Address { get; set; }
 
-        [Display(Name = "Address")]
-        [StringLength(200, ErrorMessage = "{0}stringmax{1}")]
-        public string Address { get; set; }
-
-        [Display(Name = "ZipCode")]
-        [RegularExpression("^[0-9]{6,6}$", ErrorMessage = "{0}formaterror")]
-        public string ZipCode { get; set; }
+//        [Display(Name = "ZipCode")]
+//        [RegularExpression("^[0-9]{6,6}$", ErrorMessage = "{0}formaterror")]
+//        public string ZipCode { get; set; }
 
         [Display(Name = "Photo")]
         public Guid? PhotoId { get; set; }
@@ -71,12 +71,12 @@ namespace WalkingTec.Mvvm.Core
         [Display(Name = "Role")]
         public List<FrameworkUserRole> UserRoles { get; set; }
 
-        [Display(Name = "Group")]
-        public List<FrameworkUserGroup> UserGroups { get; set; }
+//        [Display(Name = "Group")]
+//        public List<FrameworkUserGroup> UserGroups { get; set; }
 
         [Display(Name = "SearchCondition")]
         [JsonIgnore]
-        public List<SearchCondition> SearchConditions { get; set; } 
+        public List<SearchCondition> SearchConditions { get; set; }
 
         [NotMapped]
         [Display(Name = "User")]

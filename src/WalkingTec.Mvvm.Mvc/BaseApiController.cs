@@ -105,18 +105,13 @@ namespace WalkingTec.Mvvm.Mvc
                     _loginUserInfo = Cache.Get<LoginUserInfo>(cacheKey);
                     if (_loginUserInfo == null || _loginUserInfo.Id != userId)
                     {
-                        var userInfo = DC.Set<FrameworkUserBase>()
-                                            .Include(x => x.UserRoles)
-                                            .Include(x => x.UserGroups)
-                                            .Where(x => x.ID == userId)
-                                            .SingleOrDefault();
+                        var userInfo = DC.Set<FrameworkUserBase>().Include(x => x.UserRoles).SingleOrDefault(x => x.ID == userId);
                         if (userInfo != null)
                         {
                             // 初始化用户信息
                             var roleIDs = userInfo.UserRoles.Select(x => x.RoleId).ToList();
-                            var groupIDs = userInfo.UserGroups.Select(x => x.GroupId).ToList();
                             var dataPris = DC.Set<DataPrivilege>()
-                                            .Where(x => x.UserId == userInfo.ID || (x.GroupId != null && groupIDs.Contains(x.GroupId.Value)))
+                                            .Where(x => x.UserId == userInfo.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
                                             .ToList();
 
                             //查找登录用户的页面权限
@@ -131,7 +126,6 @@ namespace WalkingTec.Mvvm.Mvc
                                 Name = userInfo.Name,
                                 PhotoId = userInfo.PhotoId,
                                 Roles = DC.Set<FrameworkRole>().Where(x => userInfo.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToList(),
-                                Groups = DC.Set<FrameworkGroup>().Where(x => userInfo.UserGroups.Select(y => y.GroupId).Contains(x.ID)).ToList(),
                                 DataPrivileges = dataPris,
                                 FunctionPrivileges = funcPrivileges
                             };

@@ -17,8 +17,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
             return new List<GridColumn<FrameworkUserBase_ListView>>{
                 this.MakeGridHeader(x => x.ITCode, 120).SetEditType(),
                 this.MakeGridHeader(x => x.Name, 120).SetEditType(),
-                this.MakeGridHeader(x => x.RoleName_view),
-                this.MakeGridHeader(x => x.GroupName_view),
+                this.MakeGridHeader(x => x.RoleName_view)
             };
         }
 
@@ -33,8 +32,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
                     ID = x.ID,
                     ITCode = x.ITCode,
                     Name = x.Name,
-                    RoleName_view = DC.Set<FrameworkRole>().Where(y => x.UserRoles.Select(z => z.RoleId).Contains(y.ID)).Select(y => y.RoleName).ToSpratedString(null, ","),
-                    GroupName_view = DC.Set<FrameworkGroup>().Where(y => x.UserGroups.Select(z => z.GroupId).Contains(y.ID)).Select(y => y.GroupName).ToSpratedString(null, ","),
+                    RoleName_view = DC.Set<FrameworkRole>().Where(y => x.UserRoles.Select(z => z.RoleId).Contains(y.ID)).Select(y => y.RoleName).ToSpratedString(null, ",")
                 })
                 .OrderBy(x => x.ITCode);
             return query;
@@ -52,9 +50,6 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
 
         [Display(Name = "Role")]
         public string RoleName_view { get; set; }
-
-        [Display(Name = "Group")]
-        public string GroupName_view { get; set; }
     }
 
     public class FrameworkUserBaseSearcher : BaseSearcher

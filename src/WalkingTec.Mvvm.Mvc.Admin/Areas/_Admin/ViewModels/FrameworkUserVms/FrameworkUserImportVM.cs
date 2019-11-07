@@ -10,9 +10,6 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
         public ExcelPropety c3 = ExcelPropety.CreateProperty<FrameworkUserBase>(x => x.Name);
         public ExcelPropety c5 = ExcelPropety.CreateProperty<FrameworkUserBase>(x => x.Sex);
         public ExcelPropety c6 = ExcelPropety.CreateProperty<FrameworkUserBase>(x => x.CellPhone);
-        public ExcelPropety c7 = ExcelPropety.CreateProperty<FrameworkUserBase>(x => x.HomePhone);
-        public ExcelPropety c8 = ExcelPropety.CreateProperty<FrameworkUserBase>(x => x.Address);
-        public ExcelPropety c9 = ExcelPropety.CreateProperty<FrameworkUserBase>(x => x.ZipCode);
 
         protected override void InitVM()
         {

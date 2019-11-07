@@ -176,13 +176,6 @@ namespace WalkingTec.Mvvm.Admin.Api
             return Ok(DC.Set<FrameworkRole>().GetSelectListItems(LoginUserInfo?.DataPrivileges, null, x => x.RoleName));
         }
 
-        [HttpGet("GetFrameworkGroups")]
-        [ActionDescription("GetGroups")]
-        public ActionResult GetFrameworkGroups()
-        {
-            return Ok(DC.Set<FrameworkGroup>().GetSelectListItems(LoginUserInfo?.DataPrivileges, null, x => x.GroupName));
-        }
-
         [AllRights]
         [HttpGet("[action]")]
         [ActionDescription("Login")]
@@ -190,7 +183,6 @@ namespace WalkingTec.Mvvm.Admin.Api
         {
             var user = await DC.Set<FrameworkUserBase>()
                             .Include(x => x.UserRoles)
-                            .Include(x => x.UserGroups)
                             .Where(x => x.ID == LoginUserInfo.Id)
                             .SingleOrDefaultAsync();
 
@@ -201,21 +193,22 @@ namespace WalkingTec.Mvvm.Admin.Api
                 return BadRequest(ModelState.GetErrorJson());
             }
             var roleIDs = user.UserRoles.Select(x => x.RoleId).ToList();
-            var groupIDs = user.UserGroups.Select(x => x.GroupId).ToList();
             //查找登录用户的数据权限
             var dpris = DC.Set<DataPrivilege>()
-                .Where(x => x.UserId == user.ID || (x.GroupId != null && groupIDs.Contains(x.GroupId.Value)))
+                .Where(x => x.UserId == user.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
                 .ToList();
 
             //生成并返回登录用户信息
-            LoginUserInfo rv = new LoginUserInfo();
-            rv.Id = user.ID;
-            rv.ITCode = user.ITCode;
-            rv.Name = user.Name;
-            rv.Roles = DC.Set<FrameworkRole>().Where(x => user.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToList();
-            rv.Groups = DC.Set<FrameworkGroup>().Where(x => user.UserGroups.Select(y => y.GroupId).Contains(x.ID)).ToList();
-            rv.DataPrivileges = dpris;
-            rv.PhotoId = user.PhotoId;
+            LoginUserInfo rv = new LoginUserInfo
+            {
+                Id = user.ID,
+                ITCode = user.ITCode,
+                Name = user.Name,
+                Roles =
+                    DC.Set<FrameworkRole>().Where(x => user.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToList(),
+                DataPrivileges = dpris,
+                PhotoId = user.PhotoId
+            };
             //查找登录用户的页面权限
             var pris = DC.Set<FunctionPrivilege>()
                 .Where(x => x.UserId == user.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
@@ -223,13 +216,14 @@ namespace WalkingTec.Mvvm.Admin.Api
             rv.FunctionPrivileges = pris;
             LoginUserInfo = rv;
 
-            LoginUserInfo forapi = new LoginUserInfo();
-            forapi.Id = user.ID;
-            forapi.ITCode = user.ITCode;
-            forapi.Name = user.Name;
-            forapi.Roles = rv.Roles;
-            forapi.Groups = rv.Groups;
-            forapi.PhotoId = rv.PhotoId;
+            LoginUserInfo forapi = new LoginUserInfo
+            {
+                Id = user.ID,
+                ITCode = user.ITCode,
+                Name = user.Name,
+                Roles = rv.Roles,
+                PhotoId = rv.PhotoId
+            };
             List<SimpleMenu> ms = new List<SimpleMenu>();
 
             var menus = DC.Set<FunctionPrivilege>()

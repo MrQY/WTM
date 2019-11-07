@@ -9,9 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 using Newtonsoft.Json;
-
 using WalkingTec.Mvvm.Core;
 using WalkingTec.Mvvm.Core.Auth;
 using WalkingTec.Mvvm.Core.Auth.Attribute;
@@ -27,8 +25,9 @@ namespace WalkingTec.Mvvm.Admin.Api
     [ActionDescription("Login")]
     public class AccountController : BaseApiController
     {
-        private readonly ILogger _logger;
         private readonly ITokenService _authService;
+        private readonly ILogger _logger;
+
         public AccountController(
             ILogger<AccountController> logger,
             ITokenService authService)
@@ -39,37 +38,35 @@ namespace WalkingTec.Mvvm.Admin.Api
 
         [AllowAnonymous]
         [HttpPost("[action]")]
-        public async Task<IActionResult> Login([FromForm]string userid, [FromForm]string password, [FromForm]bool rememberLogin = false, [FromForm]bool cookie = true)
+        public async Task<IActionResult> Login([FromForm] string userid, [FromForm] string password,
+            [FromForm] bool rememberLogin = false, [FromForm] bool cookie = true)
         {
             var user = DC.Set<FrameworkUserBase>()
-                            .Include(x => x.UserRoles)
-                            .Include(x => x.UserGroups)
-                            .Where(x => x.ITCode.ToLower() == userid.ToLower() && x.Password == Utils.GetMD5String(password) && x.IsValid)
-                            .SingleOrDefault();
+                .Include(x => x.UserRoles)
+                .SingleOrDefault(x =>
+                    x.ITCode.ToLower() == userid.ToLower() && x.Password == Utils.GetMD5String(password) && x.IsValid);
 
             //如果没有找到则输出错误
-            if (user == null)
-            {
-                return BadRequest("LoadFailed");
-            }
+            if (user == null) return BadRequest("LoadFailed");
             var roleIDs = user.UserRoles.Select(x => x.RoleId).ToList();
-            var groupIDs = user.UserGroups.Select(x => x.GroupId).ToList();
             //查找登录用户的数据权限
             var dpris = DC.Set<DataPrivilege>()
-                .Where(x => x.UserId == user.ID || (x.GroupId != null && groupIDs.Contains(x.GroupId.Value)))
+                .Where(x => x.UserId == user.ID || x.RoleId != null && roleIDs.Contains(x.RoleId.Value))
                 .ToList();
             //生成并返回登录用户信息
-            var rv = new LoginUserInfo();
-            rv.Id = user.ID;
-            rv.ITCode = user.ITCode;
-            rv.Name = user.Name;
-            rv.Roles = DC.Set<FrameworkRole>().Where(x => user.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToList();
-            rv.Groups = DC.Set<FrameworkGroup>().Where(x => user.UserGroups.Select(y => y.GroupId).Contains(x.ID)).ToList();
-            rv.DataPrivileges = dpris;
+            var rv = new LoginUserInfo
+            {
+                Id = user.ID,
+                ITCode = user.ITCode,
+                Name = user.Name,
+                Roles =
+                    DC.Set<FrameworkRole>().Where(x => user.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToList(),
+                DataPrivileges = dpris
+            };
             //查找登录用户的页面权限
             var pris = DC.Set<FunctionPrivilege>()
-                            .Where(x => x.UserId == user.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
-                            .ToList();
+                .Where(x => x.UserId == user.ID || x.RoleId != null && roleIDs.Contains(x.RoleId.Value))
+                .ToList();
 
             rv.FunctionPrivileges = pris;
             rv.PhotoId = user.PhotoId;
@@ -79,27 +76,26 @@ namespace WalkingTec.Mvvm.Admin.Api
             {
                 AuthenticationProperties properties = null;
                 if (rememberLogin)
-                {
                     properties = new AuthenticationProperties
                     {
                         IsPersistent = true,
                         ExpiresUtc = DateTimeOffset.UtcNow.Add(TimeSpan.FromDays(30))
                     };
-                }
 
                 var principal = LoginUserInfo.CreatePrincipal();
                 // 在上面注册AddAuthentication时，指定了默认的Scheme，在这里便可以不再指定Scheme。
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal, properties);
-                List<SimpleMenu> ms = new List<SimpleMenu>();
-                LoginUserInfo forapi = new LoginUserInfo();
-                forapi.Id = LoginUserInfo.Id;
-                forapi.ITCode = LoginUserInfo.ITCode;
-                forapi.Name = LoginUserInfo.Name;
-                forapi.Roles = LoginUserInfo.Roles;
-                forapi.Groups = LoginUserInfo.Groups;
-                forapi.PhotoId = LoginUserInfo.PhotoId;
+                var ms = new List<SimpleMenu>();
+                var forapi = new LoginUserInfo
+                {
+                    Id = LoginUserInfo.Id,
+                    ITCode = LoginUserInfo.ITCode,
+                    Name = LoginUserInfo.Name,
+                    Roles = LoginUserInfo.Roles,
+                    PhotoId = LoginUserInfo.PhotoId
+                };
                 var menus = DC.Set<FunctionPrivilege>()
-                    .Where(x => x.UserId == user.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
+                    .Where(x => x.UserId == user.ID || x.RoleId != null && roleIDs.Contains(x.RoleId.Value))
                     .Select(x => x.MenuItem)
                     .Where(x => x.MethodName == null)
                     .Select(x => new SimpleMenu
@@ -112,27 +108,24 @@ namespace WalkingTec.Mvvm.Admin.Api
                     });
                 ms.AddRange(menus);
 
-                List<string> urls = new List<string>();
+                var urls = new List<string>();
                 urls.AddRange(DC.Set<FunctionPrivilege>()
-                    .Where(x => x.UserId == user.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
+                    .Where(x => x.UserId == user.ID || x.RoleId != null && roleIDs.Contains(x.RoleId.Value))
                     .Select(x => x.MenuItem)
                     .Where(x => x.MethodName != null)
                     .Select(x => x.Url)
-                    );
-                urls.AddRange(GlobaInfo.AllModule.Where(x => x.IsApi == true).SelectMany(x => x.Actions).Where(x => (x.IgnorePrivillege == true || x.Module.IgnorePrivillege == true) && x.Url != null).Select(x => x.Url));
-                forapi.Attributes = new Dictionary<string, object>();
-                forapi.Attributes.Add("Menus", menus);
-                forapi.Attributes.Add("Actions", urls);
+                );
+                urls.AddRange(GlobaInfo.AllModule.Where(x => x.IsApi).SelectMany(x => x.Actions)
+                    .Where(x => (x.IgnorePrivillege || x.Module.IgnorePrivillege) && x.Url != null).Select(x => x.Url));
+                forapi.Attributes = new Dictionary<string, object> {{"Menus", menus}, {"Actions", urls}};
 
                 return Ok(forapi);
             }
-            else // jwt auth
-            {
-                var authService = HttpContext.RequestServices.GetService(typeof(ITokenService)) as ITokenService;
 
-                var token = await authService.IssueTokenAsync(LoginUserInfo);
-                return Content(JsonConvert.SerializeObject(token), "application/json");
-            }
+            var authService = HttpContext.RequestServices.GetService(typeof(ITokenService)) as ITokenService;
+
+            var token = await authService.IssueTokenAsync(LoginUserInfo);
+            return Content(JsonConvert.SerializeObject(token), "application/json");
         }
 
         [HttpPost("[action]")]
@@ -146,37 +139,26 @@ namespace WalkingTec.Mvvm.Admin.Api
         [HttpGet("[action]/{id}")]
         public IActionResult CheckLogin(Guid id)
         {
-            if (LoginUserInfo?.Id != id)
-            {
-                return BadRequest();
-            }
-            else
-            {
-                var forapi = new LoginUserInfo();
-                forapi.Id = LoginUserInfo.Id;
-                forapi.ITCode = LoginUserInfo.ITCode;
-                forapi.Name = LoginUserInfo.Name;
-                forapi.Roles = LoginUserInfo.Roles;
-                forapi.Groups = LoginUserInfo.Groups;
-                forapi.PhotoId = LoginUserInfo.PhotoId;
+            if (LoginUserInfo?.Id != id) return BadRequest();
 
-                var ms = new List<SimpleMenu>();
-                var roleIDs = LoginUserInfo.Roles.Select(x => x.ID).ToList();
+            var forApi = new LoginUserInfo
+            {
+                Id = LoginUserInfo.Id,
+                ITCode = LoginUserInfo.ITCode,
+                Name = LoginUserInfo.Name,
+                Roles = LoginUserInfo.Roles,
+                PhotoId = LoginUserInfo.PhotoId
+            };
 
-                var menus = DC.Set<FunctionPrivilege>()
-                                .Where(x => x.UserId == LoginUserInfo.Id || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
-                                .Select(x => x.MenuItem).Distinct()
-                                .Where(x => x.MethodName == null)
-                                .OrderBy(x => x.DisplayOrder)
-                                .Select(x => new SimpleMenu
-                                {
-                                    Id = x.ID.ToString().ToLower(),
-                                    ParentId = x.ParentId.ToString().ToLower(),
-                                    Text = x.PageName,
-                                    Url = x.Url,
-                                    Icon = x.ICon
-                                });
-                var folders = DC.Set<FrameworkMenu>().Where(x => x.FolderOnly == true).Select(x => new SimpleMenu
+            var ms = new List<SimpleMenu>();
+            var roleIDs = LoginUserInfo.Roles.Select(x => x.ID).ToList();
+
+            var menus = DC.Set<FunctionPrivilege>()
+                .Where(x => x.UserId == LoginUserInfo.Id || x.RoleId != null && roleIDs.Contains(x.RoleId.Value))
+                .Select(x => x.MenuItem).Distinct()
+                .Where(x => x.MethodName == null)
+                .OrderBy(x => x.DisplayOrder)
+                .Select(x => new SimpleMenu
                 {
                     Id = x.ID.ToString().ToLower(),
                     ParentId = x.ParentId.ToString().ToLower(),
@@ -184,50 +166,41 @@ namespace WalkingTec.Mvvm.Admin.Api
                     Url = x.Url,
                     Icon = x.ICon
                 });
-                ms.AddRange(folders);
-                foreach (var item in menus)
-                {
-                    if (folders.Any(x => x.Id == item.Id) == false)
-                    {
-                        ms.Add(item);
-                    }
-                }
-                List<string> urls = new List<string>();
-                urls.AddRange(DC.Set<FunctionPrivilege>()
-                    .Where(x => x.UserId == LoginUserInfo.Id || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
-                    .Select(x => x.MenuItem).Distinct()
-                    .Where(x => x.MethodName != null)
-                    .Select(x => x.Url)
-                    );
-                urls.AddRange(GlobaInfo.AllModule.Where(x => x.IsApi == true).SelectMany(x => x.Actions).Where(x => (x.IgnorePrivillege == true || x.Module.IgnorePrivillege == true) && x.Url != null).Select(x => x.Url));
-                forapi.Attributes = new Dictionary<string, object>();
-                forapi.Attributes.Add("Menus", ms);
-                forapi.Attributes.Add("Actions", urls);
-                return Ok(forapi);
-            }
+            var folders = DC.Set<FrameworkMenu>().Where(x => x.FolderOnly).Select(x => new SimpleMenu
+            {
+                Id = x.ID.ToString().ToLower(),
+                ParentId = x.ParentId.ToString().ToLower(),
+                Text = x.PageName,
+                Url = x.Url,
+                Icon = x.ICon
+            });
+            ms.AddRange(folders);
+            foreach (var item in menus)
+                if (folders.Any(x => x.Id == item.Id) == false)
+                    ms.Add(item);
+            var urls = new List<string>();
+            urls.AddRange(DC.Set<FunctionPrivilege>()
+                .Where(x => x.UserId == LoginUserInfo.Id || x.RoleId != null && roleIDs.Contains(x.RoleId.Value))
+                .Select(x => x.MenuItem).Distinct()
+                .Where(x => x.MethodName != null)
+                .Select(x => x.Url)
+            );
+            urls.AddRange(GlobaInfo.AllModule.Where(x => x.IsApi).SelectMany(x => x.Actions)
+                .Where(x => (x.IgnorePrivillege || x.Module.IgnorePrivillege) && x.Url != null).Select(x => x.Url));
+            forApi.Attributes = new Dictionary<string, object> {{"Menus", ms}, {"Actions", urls}};
+            return Ok(forApi);
         }
 
         [AllRights]
         [HttpPost("[action]")]
         public IActionResult ChangePassword(ChangePasswordVM vm)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState.GetErrorJson());
-            }
-            else
-            {
-                vm.DoChange();
-                if (!ModelState.IsValid)
-                {
-                    return BadRequest(ModelState.GetErrorJson());
-                }
-                else
-                {
-                    return Ok();
-                }
-            }
+            if (!ModelState.IsValid) return BadRequest(ModelState.GetErrorJson());
 
+            vm.DoChange();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState.GetErrorJson());
+            return Ok();
         }
 
         [AllRights]

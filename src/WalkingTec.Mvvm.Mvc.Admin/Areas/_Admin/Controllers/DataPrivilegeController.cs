@@ -62,7 +62,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.Controllers
             }
             else
             {
-                vm = CreateVM<DataPrivilegeVM>(values: x => x.Entity.TableName == ModelName && x.Entity.GroupId == Id && x.DpType == Type);
+                vm = CreateVM<DataPrivilegeVM>(values: x => x.Entity.TableName == ModelName && x.Entity.RoleId == Id && x.DpType == Type);
             }
             return PartialView(vm);
         }
@@ -92,7 +92,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.Controllers
             }
             else
             {
-                vm = CreateVM<DataPrivilegeVM>(values: x => x.Entity.TableName == ModelName && x.Entity.GroupId == Id && x.DpType == Type);
+                vm = CreateVM<DataPrivilegeVM>(values: x => x.Entity.TableName == ModelName && x.Entity.RoleId == Id && x.DpType == Type);
             }
             await vm.DoDeleteAsync();
             return FFResult().RefreshGrid();

@@ -39,7 +39,7 @@ namespace WalkingTec.Mvvm.Admin.Api
             }
             else
             {
-                vm = CreateVM<DataPrivilegeVM>(values: x => x.Entity.TableName == TableName && x.Entity.GroupId == TargetId && x.DpType == DpType);
+                vm = CreateVM<DataPrivilegeVM>(values: x => x.Entity.TableName == TableName && x.Entity.RoleId == TargetId && x.DpType == DpType);
             }
             return vm;
         }
@@ -138,7 +138,7 @@ namespace WalkingTec.Mvvm.Admin.Api
         [HttpGet("[action]")]
         public ActionResult GetUserGroups()
         {
-            var rv = DC.Set<FrameworkGroup>().GetSelectListItems(LoginUserInfo.DataPrivileges, null, x => x.GroupName);
+            var rv = DC.Set<FrameworkRole>().GetSelectListItems(LoginUserInfo.DataPrivileges, null, x => x.RoleName);
             return Ok(rv);
         }
     }

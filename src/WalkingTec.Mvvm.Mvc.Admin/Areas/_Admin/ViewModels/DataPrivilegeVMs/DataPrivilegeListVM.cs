@@ -92,14 +92,14 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             else
             {
                 query = DC.Set<DataPrivilege>()
-                    .Join(DC.Set<FrameworkGroup>(), ok => ok.GroupId, ik => ik.ID, (dp, group) => new { dp = dp, group = group })
-                    .CheckContain(Searcher.Name, x => x.group.GroupName)
+                    .Join(DC.Set<FrameworkRole>(), ok => ok.RoleId, ik => ik.ID, (dp, role) => new { dp = dp, role = role })
+                    .CheckContain(Searcher.Name, x => x.role.RoleName)
                     .CheckContain(Searcher.TableName, x => x.dp.TableName)
-                       .GroupBy(x => new { x.group.GroupName, x.group.ID, x.dp.TableName }, x => x.dp.RelateId)
+                       .GroupBy(x => new { x.role.RoleName, x.role.ID, x.dp.TableName }, x => x.dp.RelateId)
                        .Select(x => new DataPrivilege_ListView
                        {
                            TargetId = x.Key.ID,
-                           Name = x.Key.GroupName,
+                           Name = x.Key.RoleName,
                            TableName = x.Key.TableName,
                            RelateIDs = x.Count(),
                            DpType = (int)Searcher.DpType

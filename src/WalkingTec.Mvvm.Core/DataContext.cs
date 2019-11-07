@@ -23,17 +23,13 @@ namespace WalkingTec.Mvvm.Core
     /// </summary>
     public partial class FrameworkContext : DbContext, IDataContext
     {
-        //public DbSet<FrameworkModule> BaseFrameworkModules { get; set; }
-        //public DbSet<FrameworkAction> BaseFrameworkActions { get; set; }
         public DbSet<FrameworkMenu> BaseFrameworkMenus { get; set; }
         public DbSet<FunctionPrivilege> BaseFunctionPrivileges { get; set; }
         public DbSet<DataPrivilege> BaseDataPrivileges { get; set; }
         public DbSet<FileAttachment> BaseFileAttachments { get; set; }
         public DbSet<FrameworkUserBase> BaseFrameworkUsers { get; set; }
         public DbSet<FrameworkRole> BaseFrameworkRoles { get; set; }
-        public DbSet<FrameworkGroup> BaseFrameworkGroups { get; set; }
         public DbSet<ActionLog> BaseActionLogs { get; set; }
-        //public DbSet<FrameworkArea> BaseFrameworkAreas { get; set; }
         public DbSet<PersistedGrant> PersistedGrants { get; set; }
 
 

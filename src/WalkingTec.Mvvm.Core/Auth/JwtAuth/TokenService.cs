@@ -30,7 +30,7 @@ namespace WalkingTec.Mvvm.Core.Auth
             _configs = GlobalServices.GetRequiredService<Configs>();
             _jwtOptions = jwtOptions.Value;
             _logger = logger;
-            _dc = CreateDC();
+            _dc = createDataContext();
         }
 
         public async Task<Token> IssueTokenAsync(LoginUserInfo loginUserInfo)
@@ -40,7 +40,7 @@ namespace WalkingTec.Mvvm.Core.Auth
 
             var signinCredentials = new SigningCredentials(_jwtOptions.SymmetricSecurityKey, SecurityAlgorithms.HmacSha256);
 
-            var tokeOptions = new JwtSecurityToken(
+            var tokenOptions = new JwtSecurityToken(
                 issuer: _jwtOptions.Issuer,
                 audience: _jwtOptions.Audience,
                 claims: new List<Claim>()
@@ -66,14 +66,14 @@ namespace WalkingTec.Mvvm.Core.Auth
 
             return await Task.FromResult(new Token()
             {
-                AccessToken = new JwtSecurityTokenHandler().WriteToken(tokeOptions),
+                AccessToken = new JwtSecurityTokenHandler().WriteToken(tokenOptions),
                 ExpiresIn = _jwtOptions.Expires,
                 TokenType = AuthConstants.JwtTokenType,
                 RefreshToken = refreshToken.RefreshToken
             });
         }
 
-        private IDataContext CreateDC()
+        private IDataContext createDataContext()
         {
             string cs = "default";
             var globalIngo = GlobalServices.GetRequiredService<GlobalData>();
@@ -101,21 +101,9 @@ namespace WalkingTec.Mvvm.Core.Auth
                 await _dc.SaveChangesAsync();
 
                 var user = await _dc.Set<FrameworkUserBase>()
-                                    .Include(x => x.UserRoles).Include(x => x.UserGroups)
+                                    .Include(x => x.UserRoles)
                                     .Where(x => x.ID == persistedGrant.UserId)
                                     .SingleAsync();
-
-                //var roleIDs = user.UserRoles.Select(x => x.RoleId).ToList();
-                //var groupIDs = usesr.UserGroups.Select(x => x.GroupId).ToList();
-                ////查找登录用户的数据权限
-                //var dpris = await _dc.Set<DataPrivilege>()
-                //                .Where(x => x.UserId == user.ID || (x.GroupId != null && groupIDs.Contains(x.GroupId.Value)))
-                //                .ToListAsync();
-
-                ////查找登录用户的页面权限
-                //var funcPrivileges = await _dc.Set<FunctionPrivilege>()
-                //                        .Where(x => x.UserId == user.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
-                //                        .ToListAsync();
 
                 //生成并返回登录用户信息
                 var loginUserInfo = new LoginUserInfo
@@ -123,18 +111,13 @@ namespace WalkingTec.Mvvm.Core.Auth
                     Id = user.ID,
                     ITCode = user.ITCode,
                     Name = user.Name,
-                    PhotoId = user.PhotoId,
-                    //Roles = await _dc.Set<FrameworkRole>().Where(x => user.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToListAsync(),
-                    //Groups = await _dc.Set<FrameworkGroup>().Where(x => user.UserGroups.Select(y => y.GroupId).Contains(x.ID)).ToListAsync(),
-                    //DataPrivileges = dpris,
-                    //FunctionPrivileges = funcPrivileges
+                    PhotoId = user.PhotoId
                 };
 
                 // 清理过期 refreshtoken
-                var sql = $"DELETE FROM persistedgrants WHERE Expiration<'{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}'";
-                _dc.RunSQL(sql);
-                _logger.LogDebug("清理过期的refreshToken：【sql:{0}】", sql);
-
+                //var sql = $"DELETE FROM persistedgrants WHERE Expiration<'{DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff")}'";
+                //_dc.RunSQL(sql);
+                await ClearExpiredRefreshTokenAsync();
                 // 颁发 token
                 return await IssueTokenAsync(loginUserInfo);
             }
@@ -155,6 +138,7 @@ namespace WalkingTec.Mvvm.Core.Auth
             {
                 dataTime = dataTime
             });
+            _logger.LogDebug("清理过期的refreshToken：【sql:{0}】", sql);
             await Task.CompletedTask;
         }
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,9 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Localization;
-
 using Newtonsoft.Json;
-
 using WalkingTec.Mvvm.Core;
 using WalkingTec.Mvvm.Core.Auth;
 using WalkingTec.Mvvm.Core.Extensions;
@@ -28,71 +25,67 @@ namespace WalkingTec.Mvvm.Mvc
         }
 
         private Configs _configInfo;
+
         public Configs ConfigInfo
         {
             get
             {
                 if (_configInfo == null)
                 {
-                    _configInfo = (Configs)HttpContext.RequestServices.GetService(typeof(Configs));
+                    _configInfo = (Configs) HttpContext.RequestServices.GetService(typeof(Configs));
                 }
+
                 return _configInfo;
             }
-            set
-            {
-                _configInfo = value;
-            }
+            set { _configInfo = value; }
         }
 
         private GlobalData _globaInfo;
+
         public GlobalData GlobaInfo
         {
             get
             {
                 if (_globaInfo == null)
                 {
-                    _globaInfo = (GlobalData)HttpContext.RequestServices.GetService(typeof(GlobalData));
+                    _globaInfo = (GlobalData) HttpContext.RequestServices.GetService(typeof(GlobalData));
                 }
+
                 return _globaInfo;
             }
-            set
-            {
-                _globaInfo = value;
-            }
+            set { _globaInfo = value; }
         }
 
         private IUIService _uiservice;
+
         public IUIService UIService
         {
             get
             {
                 if (_uiservice == null)
                 {
-                    _uiservice = (IUIService)HttpContext.RequestServices.GetService(typeof(IUIService));
+                    _uiservice = (IUIService) HttpContext.RequestServices.GetService(typeof(IUIService));
                 }
+
                 return _uiservice;
             }
-            set
-            {
-                _uiservice = value;
-            }
+            set { _uiservice = value; }
         }
 
         private IDistributedCache _cache;
+
         public IDistributedCache Cache
         {
             get
             {
                 if (_cache == null)
                 {
-                    _cache = (IDistributedCache)HttpContext.RequestServices.GetService(typeof(IDistributedCache));
+                    _cache = (IDistributedCache) HttpContext.RequestServices.GetService(typeof(IDistributedCache));
                 }
+
                 return _cache;
             }
-            set
-            {
-                _cache = value;
-            }
+            set { _cache = value; }
         }
 
         public string CurrentCS { get; set; }
@@ -106,7 +99,7 @@ namespace WalkingTec.Mvvm.Mvc
                 string rv = null;
                 if (WindowIds != null)
                 {
-                    var ids = WindowIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    var ids = WindowIds.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries);
                     if (ids.Length > 1)
                     {
                         rv = ids[ids.Length - 2];
@@ -124,7 +117,7 @@ namespace WalkingTec.Mvvm.Mvc
                 string rv = null;
                 if (WindowIds != null)
                 {
-                    var ids = WindowIds.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    var ids = WindowIds.Split(new char[] {','}, StringSplitOptions.RemoveEmptyEntries);
                     if (ids.Length > 0)
                     {
                         rv = ids[ids.Length - 1];
@@ -142,16 +135,20 @@ namespace WalkingTec.Mvvm.Mvc
                 string rv = string.Empty;
                 try
                 {
-                    if (HttpContext.Request.Cookies.TryGetValue($"{ConfigInfo?.CookiePre}windowguid", out string windowguid) == true)
+                    if (HttpContext.Request.Cookies.TryGetValue($"{ConfigInfo?.CookiePre}windowguid",
+                            out string windowguid) == true)
                     {
-
-                        if (HttpContext.Request.Cookies.TryGetValue($"{ConfigInfo?.CookiePre}{windowguid}windowids", out string windowid) == true)
+                        if (HttpContext.Request.Cookies.TryGetValue($"{ConfigInfo?.CookiePre}{windowguid}windowids",
+                                out string windowid) == true)
                         {
                             rv = windowid;
                         }
                     }
                 }
-                catch { }
+                catch
+                {
+                }
+
                 return rv;
             }
         }
@@ -159,6 +156,7 @@ namespace WalkingTec.Mvvm.Mvc
         #region DataContext
 
         private IDataContext _dc;
+
         public IDataContext DC
         {
             get
@@ -167,12 +165,10 @@ namespace WalkingTec.Mvvm.Mvc
                 {
                     _dc = this.CreateDC();
                 }
+
                 return _dc;
             }
-            set
-            {
-                _dc = value;
-            }
+            set { _dc = value; }
         }
 
         #endregion
@@ -192,6 +188,7 @@ namespace WalkingTec.Mvvm.Mvc
                 });
             }
         }
+
         public static Guid? DomainId { get; set; }
 
         #endregion
@@ -199,35 +196,36 @@ namespace WalkingTec.Mvvm.Mvc
         #region Current User
 
         private LoginUserInfo _loginUserInfo;
+
         public LoginUserInfo LoginUserInfo
         {
             get
             {
-                if (User?.Identity?.IsAuthenticated == true  && _loginUserInfo == null) // 用户认证通过后，当前上下文不包含用户数据
+                if (User?.Identity?.IsAuthenticated == true && _loginUserInfo == null) // 用户认证通过后，当前上下文不包含用户数据
                 {
-                    var userIdStr = User.Claims.SingleOrDefault(x => x.Type == AuthConstants.JwtClaimTypes.Subject).Value;
+                    var userIdStr = User.Claims.SingleOrDefault(x => x.Type == AuthConstants.JwtClaimTypes.Subject)
+                        .Value;
                     Guid userId = Guid.Parse(userIdStr);
                     var cacheKey = $"{GlobalConstants.CacheKey.UserInfo}:{userIdStr}";
                     _loginUserInfo = Cache.Get<LoginUserInfo>(cacheKey);
                     if (_loginUserInfo == null || _loginUserInfo.Id != userId)
                     {
                         var userInfo = DC.Set<FrameworkUserBase>()
-                                            .Include(x => x.UserRoles)
-                                            .Include(x => x.UserGroups)
-                                            .Where(x => x.ID == userId)
-                                            .SingleOrDefault();
+                            .Include(x => x.UserRoles)
+                            .SingleOrDefault(x => x.ID == userId);
                         if (userInfo != null)
                         {
                             // 初始化用户信息
                             var roleIDs = userInfo.UserRoles.Select(x => x.RoleId).ToList();
-                            var groupIDs = userInfo.UserGroups.Select(x => x.GroupId).ToList();
                             var dataPris = DC.Set<DataPrivilege>()
-                                            .Where(x => x.UserId == userInfo.ID || (x.GroupId != null && groupIDs.Contains(x.GroupId.Value)))
-                                            .ToList();
+                                .Where(x => x.UserId == userInfo.ID ||
+                                            (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
+                                .ToList();
 
                             //查找登录用户的页面权限
                             var funcPrivileges = DC.Set<FunctionPrivilege>()
-                                .Where(x => x.UserId == userInfo.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
+                                .Where(x => x.UserId == userInfo.ID ||
+                                            (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
                                 .ToList();
 
                             _loginUserInfo = new LoginUserInfo
@@ -236,8 +234,8 @@ namespace WalkingTec.Mvvm.Mvc
                                 ITCode = userInfo.ITCode,
                                 Name = userInfo.Name,
                                 PhotoId = userInfo.PhotoId,
-                                Roles = DC.Set<FrameworkRole>().Where(x => userInfo.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToList(),
-                                Groups = DC.Set<FrameworkGroup>().Where(x => userInfo.UserGroups.Select(y => y.GroupId).Contains(x.ID)).ToList(),
+                                Roles = DC.Set<FrameworkRole>()
+                                    .Where(x => userInfo.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToList(),
                                 DataPrivileges = dataPris,
                                 FunctionPrivileges = funcPrivileges
                             };
@@ -249,6 +247,7 @@ namespace WalkingTec.Mvvm.Mvc
                         }
                     }
                 }
+
                 return _loginUserInfo;
             }
             set
@@ -269,6 +268,7 @@ namespace WalkingTec.Mvvm.Mvc
         #endregion
 
         #region GUID
+
         public List<EncHash> EncHashs
         {
             get
@@ -282,37 +282,49 @@ namespace WalkingTec.Mvvm.Mvc
                 });
             }
         }
+
         #endregion
 
         #region Menus
+
         public List<FrameworkMenu> FFMenus => GlobaInfo.AllMenus;
+
         #endregion
 
         #region URL
+
         public string BaseUrl { get; set; }
+
         #endregion
 
         private IStringLocalizer _localizer;
+
         public IStringLocalizer Localizer
         {
             get
             {
                 if (_localizer == null)
                 {
-                    var programtype = this.GetType().Assembly.GetTypes().Where(x => x.Name == "Program").FirstOrDefault();
+                    var programtype = this.GetType().Assembly.GetTypes().FirstOrDefault(x => x.Name == "Program");
                     if (programtype != null)
                     {
                         try
                         {
-                            _localizer = GlobalServices.GetRequiredService(typeof(IStringLocalizer<>).MakeGenericType(programtype)) as IStringLocalizer;
+                            _localizer =
+                                GlobalServices.GetRequiredService(
+                                    typeof(IStringLocalizer<>).MakeGenericType(programtype)) as IStringLocalizer;
                         }
-                        catch { }
+                        catch
+                        {
+                        }
                     }
+
                     if (_localizer == null)
                     {
                         _localizer = WalkingTec.Mvvm.Core.Program._localizer;
                     }
                 }
+
                 return _localizer;
             }
         }
@@ -322,6 +334,7 @@ namespace WalkingTec.Mvvm.Mvc
         //-------------------------------------------方法------------------------------------//
 
         #region CreateVM
+
         /// <summary>
         /// Create a ViewModel, and pass Session,cache,dc...etc to the viewmodel
         /// </summary>
@@ -331,7 +344,8 @@ namespace WalkingTec.Mvvm.Mvc
         /// <param name="values">properties of the viewmodel that you want to assign values</param>
         /// <param name="passInit">if true, the viewmodel will not call InitVM internally</param>
         /// <returns>ViewModel</returns>
-        private BaseVM CreateVM(Type VMType, object Id = null, object[] Ids = null, Dictionary<string, object> values = null, bool passInit = false)
+        private BaseVM CreateVM(Type VMType, object Id = null, object[] Ids = null,
+            Dictionary<string, object> values = null, bool passInit = false)
         {
             //Use reflection to create viewmodel
             var ctor = VMType.GetConstructor(Type.EmptyTypes);
@@ -340,7 +354,10 @@ namespace WalkingTec.Mvvm.Mvc
             {
                 rv.Session = new SessionServiceProvider(HttpContext.Session);
             }
-            catch { }
+            catch
+            {
+            }
+
             rv.ConfigInfo = ConfigInfo;
             rv.Cache = Cache;
             rv.LoginUserInfo = LoginUserInfo;
@@ -371,6 +388,7 @@ namespace WalkingTec.Mvvm.Mvc
                             }
                         }
                     }
+
                     if (HttpContext.Request.HasFormContentType)
                     {
                         var f = HttpContext.Request.Form;
@@ -383,8 +401,11 @@ namespace WalkingTec.Mvvm.Mvc
                         }
                     }
                 }
-                catch { }
+                catch
+                {
+                }
             }
+
             //try to set values to the viewmodel's matching properties
             if (values != null)
             {
@@ -393,11 +414,13 @@ namespace WalkingTec.Mvvm.Mvc
                     PropertyHelper.SetPropertyValue(rv, v.Key, v.Value, null, false);
                 }
             }
+
             //if viewmodel is derrived from BaseCRUDVM<> and Id has value, call ViewModel's GetById method
             if (Id != null && rv is IBaseCRUDVM<TopBasePoco> cvm)
             {
                 cvm.SetEntityById(Id);
             }
+
             //if viewmodel is derrived from IBaseBatchVM<>，set ViewMode's Ids property,and init it's ListVM and EditModel properties
             if (rv is IBaseBatchVM<BaseVM> temp)
             {
@@ -409,8 +432,10 @@ namespace WalkingTec.Mvvm.Mvc
                     {
                         tempids.Add(iid.ToString());
                     }
+
                     temp.Ids = tempids.ToArray();
                 }
+
                 if (temp.ListVM != null)
                 {
                     temp.ListVM.CopyContext(rv);
@@ -418,10 +443,12 @@ namespace WalkingTec.Mvvm.Mvc
                     temp.ListVM.SearcherMode = ListVMSearchModeEnum.Batch;
                     temp.ListVM.NeedPage = false;
                 }
+
                 if (temp.LinkedVM != null)
                 {
                     temp.LinkedVM.CopyContext(rv);
                 }
+
                 if (temp.ListVM != null)
                 {
                     //Remove the action columns from list
@@ -445,9 +472,11 @@ namespace WalkingTec.Mvvm.Mvc
                         }
                     }
                 }
+
                 temp.LinkedVM?.DoInit();
                 //temp.ListVM.DoSearch();
             }
+
             //if the viewmodel is a ListVM, Init it's searcher
             if (rv is IBasePagedListVM<TopBasePoco, ISearcher> lvm)
             {
@@ -457,9 +486,10 @@ namespace WalkingTec.Mvvm.Mvc
                 {
                     searcher.DoInit();
                 }
-                lvm.DoInitListVM();
 
+                lvm.DoInitListVM();
             }
+
             if (rv is IBaseImport<BaseTemplateVM> tvm)
             {
                 var template = tvm.Template;
@@ -472,6 +502,7 @@ namespace WalkingTec.Mvvm.Mvc
             {
                 rv.DoInit();
             }
+
             return rv;
         }
 
@@ -497,7 +528,8 @@ namespace WalkingTec.Mvvm.Mvc
         /// <param name="values">properties of the viewmodel that you want to assign values</param>
         /// <param name="passInit">if true, the viewmodel will not call InitVM internally</param>
         /// <returns>ViewModel</returns>
-        public T CreateVM<T>(object Id, Expression<Func<T, object>> values = null, bool passInit = false) where T : BaseVM
+        public T CreateVM<T>(object Id, Expression<Func<T, object>> values = null, bool passInit = false)
+            where T : BaseVM
         {
             SetValuesParser p = new SetValuesParser();
             var dir = p.Parse(values);
@@ -512,7 +544,8 @@ namespace WalkingTec.Mvvm.Mvc
         /// <param name="values">use Lambda to set viewmodel's properties,use && for multiply properties, for example CreateVM<Test>(values: x=>x.Field1=='a' && x.Field2 == 'b'); will set viewmodel's Field1 to 'a' and Field2 to 'b'</param>
         /// <param name="passInit">if true, the viewmodel will not call InitVM internally</param>
         /// <returns>ViewModel</returns>
-        public T CreateVM<T>(object[] Ids, Expression<Func<T, object>> values = null, bool passInit = false) where T : BaseVM
+        public T CreateVM<T>(object[] Ids, Expression<Func<T, object>> values = null, bool passInit = false)
+            where T : BaseVM
         {
             SetValuesParser p = new SetValuesParser();
             var dir = p.Parse(values);
@@ -528,7 +561,8 @@ namespace WalkingTec.Mvvm.Mvc
         /// <param name="values">use Lambda to set viewmodel's properties,use && for multiply properties, for example CreateVM<Test>(values: x=>x.Field1=='a' && x.Field2 == 'b'); will set viewmodel's Field1 to 'a' and Field2 to 'b'</param>
         /// <param name="passInit">if true, the viewmodel will not call InitVM internally</param>
         /// <returns>ViewModel</returns>
-        public T CreateVM<T>(Guid[] Ids, Expression<Func<T, object>> values = null, bool passInit = false) where T : BaseVM
+        public T CreateVM<T>(Guid[] Ids, Expression<Func<T, object>> values = null, bool passInit = false)
+            where T : BaseVM
         {
             SetValuesParser p = new SetValuesParser();
             var dir = p.Parse(values);
@@ -543,7 +577,8 @@ namespace WalkingTec.Mvvm.Mvc
         /// <param name="values">use Lambda to set viewmodel's properties,use && for multiply properties, for example CreateVM<Test>(values: x=>x.Field1=='a' && x.Field2 == 'b'); will set viewmodel's Field1 to 'a' and Field2 to 'b'</param>
         /// <param name="passInit">if true, the viewmodel will not call InitVM internally</param>
         /// <returns>ViewModel</returns>
-        public T CreateVM<T>(int[] Ids, Expression<Func<T, object>> values = null, bool passInit = false) where T : BaseVM
+        public T CreateVM<T>(int[] Ids, Expression<Func<T, object>> values = null, bool passInit = false)
+            where T : BaseVM
         {
             SetValuesParser p = new SetValuesParser();
             var dir = p.Parse(values);
@@ -558,12 +593,14 @@ namespace WalkingTec.Mvvm.Mvc
         /// <param name="values">use Lambda to set viewmodel's properties,use && for multiply properties, for example CreateVM<Test>(values: x=>x.Field1=='a' && x.Field2 == 'b'); will set viewmodel's Field1 to 'a' and Field2 to 'b'</param>
         /// <param name="passInit">if true, the viewmodel will not call InitVM internally</param>
         /// <returns>ViewModel</returns>
-        public T CreateVM<T>(long[] Ids, Expression<Func<T, object>> values = null, bool passInit = false) where T : BaseVM
+        public T CreateVM<T>(long[] Ids, Expression<Func<T, object>> values = null, bool passInit = false)
+            where T : BaseVM
         {
             SetValuesParser p = new SetValuesParser();
             var dir = p.Parse(values);
             return CreateVM(typeof(T), null, Ids.Cast<object>().ToArray(), dir, passInit) as T;
         }
+
         /// <summary>
         /// Create a ViewModel, and pass Session,cache,dc...etc to the viewmodel
         /// </summary>
@@ -572,7 +609,8 @@ namespace WalkingTec.Mvvm.Mvc
         /// <param name="values">use Lambda to set viewmodel's properties,use && for multiply properties, for example CreateVM<Test>(values: x=>x.Field1=='a' && x.Field2 == 'b'); will set viewmodel's Field1 to 'a' and Field2 to 'b'</param>
         /// <param name="passInit">if true, the viewmodel will not call InitVM internally</param>
         /// <returns>ViewModel</returns>
-        public T CreateVM<T>(string[] Ids, Expression<Func<T, object>> values = null, bool passInit = false) where T : BaseVM
+        public T CreateVM<T>(string[] Ids, Expression<Func<T, object>> values = null, bool passInit = false)
+            where T : BaseVM
         {
             SetValuesParser p = new SetValuesParser();
             var dir = p.Parse(values);
@@ -591,9 +629,11 @@ namespace WalkingTec.Mvvm.Mvc
         {
             return CreateVM(Type.GetType(VmFullName), Id, Ids, null, passInit);
         }
+
         #endregion
 
         #region CreateDC
+
         public virtual IDataContext CreateDC(bool isLog = false)
         {
             string cs = CurrentCS;
@@ -608,34 +648,45 @@ namespace WalkingTec.Mvvm.Mvc
                     cs = "default";
                 }
             }
-            return (IDataContext)GlobaInfo?.DataContextCI?.Invoke(new object[] { ConfigInfo?.ConnectionStrings?.Where(x => x.Key.ToLower() == cs).Select(x => x.Value).FirstOrDefault(), CurrentDbType ?? ConfigInfo.DbType });
+
+            return (IDataContext) GlobaInfo?.DataContextCI?.Invoke(new object[]
+            {
+                ConfigInfo?.ConnectionStrings?.Where(x => x.Key.ToLower() == cs).Select(x => x.Value).FirstOrDefault(),
+                CurrentDbType ?? ConfigInfo.DbType
+            });
         }
 
         #endregion
 
         #region ReInit model
+
         private void SetReInit(ModelStateDictionary msd, BaseVM model)
         {
-            var reinit = model.GetType().GetTypeInfo().GetCustomAttributes(typeof(ReInitAttribute), false).Cast<ReInitAttribute>().SingleOrDefault();
+            var reinit = model.GetType().GetTypeInfo().GetCustomAttributes(typeof(ReInitAttribute), false)
+                .Cast<ReInitAttribute>().SingleOrDefault();
 
             if (ModelState.IsValid)
             {
-                if (reinit != null && (reinit.ReInitMode == ReInitModes.SUCCESSONLY || reinit.ReInitMode == ReInitModes.ALWAYS))
+                if (reinit != null && (reinit.ReInitMode == ReInitModes.SUCCESSONLY ||
+                                       reinit.ReInitMode == ReInitModes.ALWAYS))
                 {
                     model.DoReInit();
                 }
             }
             else
             {
-                if (reinit == null || (reinit.ReInitMode == ReInitModes.FAILEDONLY || reinit.ReInitMode == ReInitModes.ALWAYS))
+                if (reinit == null || (reinit.ReInitMode == ReInitModes.FAILEDONLY ||
+                                       reinit.ReInitMode == ReInitModes.ALWAYS))
                 {
                     model.DoReInit();
                 }
             }
         }
+
         #endregion
 
         #region Validate model
+
         [NonAction]
         public Dictionary<string, string> RedoValidation(object item)
         {
@@ -652,9 +703,11 @@ namespace WalkingTec.Mvvm.Mvc
 
             return rv;
         }
+
         #endregion
 
         #region update viewmodel
+
         /// <summary>
         /// Set viewmodel's properties to the matching items posted by user
         /// </summary>
@@ -671,6 +724,7 @@ namespace WalkingTec.Mvvm.Mvc
                 {
                     PropertyHelper.SetPropertyValue(vm, item, bvm.FC[item], prefix, true);
                 }
+
                 return true;
             }
             catch
@@ -678,6 +732,7 @@ namespace WalkingTec.Mvvm.Mvc
                 return false;
             }
         }
+
         #endregion
 
         protected T ReadFromCache<T>(string key, Func<T> setFunc, int? timeout = null)
@@ -696,6 +751,7 @@ namespace WalkingTec.Mvvm.Mvc
                         SlidingExpiration = new TimeSpan(timeout.Value)
                     });
                 }
+
                 return data;
             }
             else
@@ -728,7 +784,10 @@ namespace WalkingTec.Mvvm.Mvc
             {
                 rv.Controller.Response.Headers.Add("IsScript", "true");
             }
-            catch { }
+            catch
+            {
+            }
+
             return rv;
         }
 
@@ -801,13 +860,13 @@ namespace WalkingTec.Mvvm.Mvc
         /// <returns>The created Microsoft.AspNetCore.Mvc.JsonResult that serializes the specified
         /// data to JSON format for the response.</returns>
         [NonAction]
-        public virtual JsonResult Json(object data, int statusCode = StatusCodes.Status200OK, string msg = SUCCESS, JsonSerializerSettings serializerSettings = null)
+        public virtual JsonResult Json(object data, int statusCode = StatusCodes.Status200OK, string msg = SUCCESS,
+            JsonSerializerSettings serializerSettings = null)
         {
-            return new JsonResult(new JsonResultT<object> { Msg = msg, Code = statusCode, Data = data }) { SerializerSettings = serializerSettings };
+            return new JsonResult(new JsonResultT<object> {Msg = msg, Code = statusCode, Data = data})
+                {SerializerSettings = serializerSettings};
         }
 
         #endregion
-
     }
-
 }

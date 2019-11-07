@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using WalkingTec.Mvvm.Core;
-using WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkGroupVMs;
 using WalkingTec.Mvvm.Core.Extensions;
 using System.Threading.Tasks;
 
@@ -13,7 +12,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
     {
         public List<ComboSelectListItem> TableNames { get; set; }
         public List<ComboSelectListItem> AllItems { get; set; }
-        public List<ComboSelectListItem> AllGroups { get; set; }
+        public List<ComboSelectListItem> AllRoles { get; set; }
         [Display(Name = "AllowedDp")]
         public List<string> SelectedItemsID { get; set; }
         [Display(Name ="Account")]
@@ -36,7 +35,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             TableNames = new List<ComboSelectListItem>();
             if (ControllerName.Contains("WalkingTec.Mvvm.Mvc.Admin.Controllers"))
             {
-                AllGroups = DC.Set<FrameworkGroup>().GetSelectListItems(LoginUserInfo.DataPrivileges, null, x => x.GroupName);
+                AllRoles = DC.Set<FrameworkRole>().GetSelectListItems(LoginUserInfo.DataPrivileges, null, x => x.RoleName);
                 TableNames = ConfigInfo.DataPrivilegeSettings.ToListItems(x => x.PrivillegeName, x => x.ModelName);
             }
             SelectedItemsID = new List<string>();
@@ -47,7 +46,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                rids = DC.Set<DataPrivilege>().Where(x => x.TableName == Entity.TableName && x.GroupId == Entity.GroupId).Select(x => x.RelateId).ToList();
+                rids = DC.Set<DataPrivilege>().Where(x => x.TableName == Entity.TableName && x.RoleId == Entity.RoleId).Select(x => x.RelateId).ToList();
             }
             if (rids.Contains(null))
             {
@@ -90,9 +89,9 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                if(Entity.GroupId == null)
+                if(Entity.RoleId == null)
                 {
-                    MSD.AddModelError("Entity.GroupId", Program._localizer["{0}required", Program._localizer["Group"]]);
+                    MSD.AddModelError("Entity.RoleId", Program._localizer["{0}required", Program._localizer["Group"]]);
                 }
             }
 
@@ -113,7 +112,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                oldIDs = DC.Set<DataPrivilege>().Where(x => x.GroupId == Entity.GroupId && x.TableName == this.Entity.TableName).Select(x => x.ID).ToList();
+                oldIDs = DC.Set<DataPrivilege>().Where(x => x.RoleId == Entity.RoleId && x.TableName == this.Entity.TableName).Select(x => x.ID).ToList();
             }
             foreach (var oldid in oldIDs)
             {
@@ -152,7 +151,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
                 {
                     DataPrivilege dp = new DataPrivilege();
                     dp.RelateId = null;
-                    dp.GroupId = Entity.GroupId;
+                    dp.RoleId = Entity.RoleId;
                     dp.TableName = this.Entity.TableName;
                     dp.DomainId = this.Entity.DomainId;
                     DC.Set<DataPrivilege>().Add(dp);
@@ -163,7 +162,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
                     {
                         DataPrivilege dp = new DataPrivilege();
                         dp.RelateId = id;
-                        dp.GroupId = Entity.GroupId;
+                        dp.RoleId = Entity.RoleId;
                         dp.TableName = this.Entity.TableName;
                         dp.DomainId = this.Entity.DomainId;
                         DC.Set<DataPrivilege>().Add(dp);
@@ -177,7 +176,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                var userids = DC.Set<FrameworkUserGroup>().Where(x => x.GroupId == Entity.GroupId).Select(x => x.UserId.ToString()).ToArray();
+                var userids = DC.Set<FrameworkUserRole>().Where(x => x.RoleId == Entity.RoleId).Select(x => x.UserId.ToString()).ToArray();
                 await LoginUserInfo.RemoveUserCache(userids);
             }
 
@@ -193,7 +192,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                oldIDs = DC.Set<DataPrivilege>().Where(x => x.GroupId == Entity.GroupId && x.TableName == this.Entity.TableName).Select(x => x.ID).ToList();
+                oldIDs = DC.Set<DataPrivilege>().Where(x => x.RoleId == Entity.RoleId && x.TableName == this.Entity.TableName).Select(x => x.ID).ToList();
             }
             foreach (var oldid in oldIDs)
             {
@@ -217,7 +216,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
                 {
                     DataPrivilege dp = new DataPrivilege();
                     dp.RelateId = null;
-                    dp.GroupId = Entity.GroupId;
+                    dp.RoleId = Entity.RoleId;
                     dp.TableName = this.Entity.TableName;
                     dp.DomainId = this.Entity.DomainId;
                     DC.Set<DataPrivilege>().Add(dp);
@@ -245,7 +244,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
                         {
                             DataPrivilege dp = new DataPrivilege();
                             dp.RelateId = id;
-                            dp.GroupId = Entity.GroupId;
+                            dp.RoleId = Entity.RoleId;
                             dp.TableName = this.Entity.TableName;
                             dp.DomainId = this.Entity.DomainId;
                             DC.Set<DataPrivilege>().Add(dp);
@@ -260,7 +259,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                var userids = DC.Set<FrameworkUserGroup>().Where(x => x.GroupId == Entity.GroupId).Select(x => x.UserId.ToString()).ToArray();
+                var userids = DC.Set<FrameworkUserRole>().Where(x => x.RoleId == Entity.RoleId).Select(x => x.UserId.ToString()).ToArray();
                 await LoginUserInfo.RemoveUserCache(userids);
             }
         }
@@ -275,7 +274,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                oldIDs = DC.Set<DataPrivilege>().Where(x => x.GroupId == Entity.GroupId && x.TableName == this.Entity.TableName).Select(x => x.ID).ToList();
+                oldIDs = DC.Set<DataPrivilege>().Where(x => x.RoleId == Entity.RoleId && x.TableName == this.Entity.TableName).Select(x => x.ID).ToList();
             }
             foreach (var oldid in oldIDs)
             {
@@ -291,7 +290,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                var userids = DC.Set<FrameworkUserGroup>().Where(x => x.GroupId == Entity.GroupId).Select(x => x.UserId.ToString()).ToArray();
+                var userids = DC.Set<FrameworkUserRole>().Where(x => x.RoleId == Entity.RoleId).Select(x => x.UserId.ToString()).ToArray();
                 await LoginUserInfo.RemoveUserCache(userids);
             }
         }

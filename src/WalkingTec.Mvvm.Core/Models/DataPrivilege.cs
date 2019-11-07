@@ -17,11 +17,11 @@ namespace WalkingTec.Mvvm.Core
         [JsonIgnore()]
         public FrameworkUserBase User { get; set; }
 
-        [Display(Name = "Group")]
-        public Guid? GroupId { get; set; }
-        [Display(Name = "Group")]
+        [Display(Name = "Role")]
+        public Guid? RoleId { get; set; }
+        [Display(Name = "Role")]
         [JsonIgnore()]
-        public FrameworkGroup Group { get; set; }
+        public FrameworkRole Role { get; set; }
 
         [Required(ErrorMessage = "{0}required")]
         [StringLength(50,ErrorMessage = "{0}stringmax{1}")]

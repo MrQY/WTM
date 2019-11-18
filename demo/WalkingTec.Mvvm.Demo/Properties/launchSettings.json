@@ -14,7 +14,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "ancmHostingModel": "InProcess"
+      "ancmHostingModel": "OutOfProcess"
     },
     "WalkingTec.Mvvm.Demo": {
       "commandName": "Project",

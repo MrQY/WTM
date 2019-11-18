@@ -36,7 +36,7 @@ namespace WalkingTec.Mvvm.Demo.ViewModels.HomeVMs
         {
             //根据用户名和密码查询用户
             var user = DC.Set<FrameworkUserBase>()
-                .Include(x => x.UserRoles).Include(x => x.UserGroups)
+                .Include(x => x.UserRoles)
                 .Where(x => x.ITCode.ToLower() == ITCode.ToLower() && x.Password == Utils.GetMD5String(Password) && x.IsValid)
                 .SingleOrDefault();
 
@@ -47,10 +47,9 @@ namespace WalkingTec.Mvvm.Demo.ViewModels.HomeVMs
                 return null;
             }
             var roleIDs = user.UserRoles.Select(x => x.RoleId).ToList();
-            var groupIDs = user.UserGroups.Select(x => x.GroupId).ToList();
             //查找登录用户的数据权限
             var dpris = DC.Set<DataPrivilege>()
-                .Where(x => x.UserId == user.ID || (x.GroupId != null && groupIDs.Contains(x.GroupId.Value)))
+                .Where(x => x.UserId == user.ID || (x.RoleId != null && roleIDs.Contains(x.RoleId.Value)))
                 .Distinct()
                 .ToList();
 
@@ -62,7 +61,6 @@ namespace WalkingTec.Mvvm.Demo.ViewModels.HomeVMs
                 Name = user.Name,
                 PhotoId = user.PhotoId,
                 Roles = DC.Set<FrameworkRole>().Where(x => user.UserRoles.Select(y => y.RoleId).Contains(x.ID)).ToList(),
-                Groups = DC.Set<FrameworkGroup>().Where(x => user.UserGroups.Select(y => y.GroupId).Contains(x.ID)).ToList(),
                 DataPrivileges = dpris
             };
             if (ignorePris == false)

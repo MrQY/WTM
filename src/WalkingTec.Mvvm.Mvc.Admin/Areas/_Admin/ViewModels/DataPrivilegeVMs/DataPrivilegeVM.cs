@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading.Tasks;
 using WalkingTec.Mvvm.Core;
 using WalkingTec.Mvvm.Core.Extensions;
-using System.Threading.Tasks;
 
 namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
 {
@@ -15,7 +15,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
         public List<ComboSelectListItem> AllRoles { get; set; }
         [Display(Name = "AllowedDp")]
         public List<string> SelectedItemsID { get; set; }
-        [Display(Name ="Account")]
+        [Display(Name = "Account")]
         public string UserItCode { get; set; }
 
         [Display(Name = "DpType")]
@@ -89,9 +89,9 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
             else
             {
-                if(Entity.RoleId == null)
+                if (Entity.RoleId == null)
                 {
-                    MSD.AddModelError("Entity.RoleId", Program._localizer["{0}required", Program._localizer["Group"]]);
+                    MSD.AddModelError("Entity.RoleId", Program._localizer["{0}required", Program._localizer["Role"]]);
                 }
             }
 
@@ -200,7 +200,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
                 DC.Set<DataPrivilege>().Attach(dp);
                 DC.DeleteEntity(dp);
             }
-            if(IsAll == true)
+            if (IsAll == true)
             {
                 if (DpType == DpTypeEnum.User)
                 {
@@ -222,7 +222,8 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
                     DC.Set<DataPrivilege>().Add(dp);
                 }
             }
-            else {
+            else
+            {
                 if (SelectedItemsID != null)
                 {
                     if (DpType == DpTypeEnum.User)
@@ -264,7 +265,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
             }
         }
 
-        public override async Task  DoDeleteAsync()
+        public override async Task DoDeleteAsync()
         {
             List<Guid> oldIDs = null;
 

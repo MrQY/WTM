@@ -411,21 +411,6 @@
   <data name="GotoButtonText" xml:space="preserve">
     <value>确定</value>
   </data>
-  <data name="Group" xml:space="preserve">
-    <value>用户组</value>
-  </data>
-  <data name="GroupCode" xml:space="preserve">
-    <value>用户组编号</value>
-  </data>
-  <data name="GroupDp" xml:space="preserve">
-    <value>用户组权限</value>
-  </data>
-  <data name="GroupManagement" xml:space="preserve">
-    <value>用户组管理</value>
-  </data>
-  <data name="GroupName" xml:space="preserve">
-    <value>组名</value>
-  </data>
   <data name="Have" xml:space="preserve">
     <value>有</value>
   </data>
@@ -677,6 +662,9 @@
   </data>
   <data name="RoleCode" xml:space="preserve">
     <value>角色编号</value>
+  </data>
+  <data name="RoleDp" xml:space="preserve">
+    <value>角色权限</value>
   </data>
   <data name="RoleManagement" xml:space="preserve">
     <value>角色管理</value>

@@ -1,11 +1,58 @@
-﻿@model WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkRoleVMs.FrameworkRoleVM
-
+@using Microsoft.Extensions.Localization;
+@using WalkingTec.Mvvm.Mvc.Admin.ViewModels.DataPrivilegeVMs
+@model WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkRoleVMs.FrameworkRoleVM
+@inject IStringLocalizer<WalkingTec.Mvvm.Core.Program> Localizer;
 <wt:form vm="@Model">
-    <wt:textbox field="Entity.RoleCode" />
-    <wt:textbox field="Entity.RoleName" />
-    <wt:textarea field="Entity.RoleRemark" />
-    <wt:row align="AlignEnum.Right">
-        <wt:submitbutton />
-        <wt:closebutton />
-    </wt:row>
+  <wt:tab>
+    <wt:tabheaders>
+      <wt:tabheader title="@Localizer["BasicInfo"]" />      @*基础信息*@
+      <wt:tabheader title="@Localizer["PageFunction"]" />   @*页面权限*@
+      <wt:tabheader title="@Localizer["DataPrivilege"]" />  @*数据权限*@
+    </wt:tabheaders>
+    <wt:tabcontents>
+      <wt:tabcontent>
+        <wt:row items-per-row="ItemsPerRowEnum.Two">
+          <wt:textbox field="Entity.RoleCode" />
+          <wt:textbox field="Entity.RoleName" />
+        </wt:row>
+        <wt:row items-per-row="ItemsPerRowEnum.One">
+          <wt:textarea field="Entity.RoleRemark" />
+        </wt:row>
+      </wt:tabcontent>
+      <wt:tabcontent>
+        <wt:grid vm="ListVM" height=500 hidden-checkbox="true" hidden-grid-index="true" hidden-panel="true" multi-line="true" use-local-data="true" />
+      </wt:tabcontent>
+      <wt:tabcontent>
+        <input type="hidden" name="DpType" value="@DpTypeEnum.UserRole" />
+        <wt:combobox field="TableName" items="TableNames" change-func="PriTypeChange" />
+        <wt:combobox field="IsAll" change-func="IsAllChange" />
+        <wt:row id="selector">
+          <wt:selector list-vm="DpList" field="SelectedItemsID" text-bind="DpList.EntityList[0].Name" before-onpen-dialog-func="SetTableName" label-text="">
+          </wt:selector>
+        </wt:row>
+      </wt:tabcontent>
+    </wt:tabcontents>
+  </wt:tab>
+  <wt:row align="AlignEnum.Right">
+    <wt:submitbutton />
+    <wt:closebutton />
+  </wt:row>
 </wt:form>
+
+<script>
+  function IsAllChange(data) {
+    if (data.value == 'true') {
+      $('#selector').css('display', 'none');
+    }
+    else {
+      $('#selector').css('display', 'block');
+    }
+  }
+  function PriTypeChange(data) {
+    selectedtablename = data.value;
+    ff.clearSelector("DataPrivilegeVM_SelectedItemsID");
+  }
+  function SetTableName() {
+    ff.setSelectorPara("DataPrivilegeVM_SelectedItemsID", { "Searcher.TableName": selectedtablename })
+  }
+</script>

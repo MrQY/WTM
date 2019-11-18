@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Localization;
 using Swashbuckle.AspNetCore.Swagger;
 using WalkingTec.Mvvm.Core;
 using WalkingTec.Mvvm.Demo.Models;

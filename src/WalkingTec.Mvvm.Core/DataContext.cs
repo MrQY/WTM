@@ -1,11 +1,3 @@
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Debug;
-using MySql.Data.MySqlClient;
-using Npgsql;
-using Oracle.ManagedDataAccess.Client;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -14,6 +6,14 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Debug;
+using MySql.Data.MySqlClient;
+using Npgsql;
+using Oracle.ManagedDataAccess.Client;
 using WalkingTec.Mvvm.Core.Extensions;
 
 namespace WalkingTec.Mvvm.Core
@@ -366,34 +366,39 @@ namespace WalkingTec.Mvvm.Core
                 if (Set<FrameworkMenu>().Any() == false)
                 {
                     var systemManagement = GetFolderMenu(Program._localizer["SystemManagement"], new List<FrameworkRole> { adminRole }, null);
-                    var logList = IsSpa ? GetMenu2(AllModules, "ActionLog", new List<FrameworkRole> { adminRole }, null, 1) : GetMenu(AllModules, "_Admin", "ActionLog", "Index", new List<FrameworkRole> { adminRole }, null, 1);
-                    var userList = IsSpa ? GetMenu2(AllModules, "FrameworkUser", new List<FrameworkRole> { adminRole }, null, 2) : GetMenu(AllModules, "_Admin", "FrameworkUser", "Index", new List<FrameworkRole> { adminRole }, null, 2);
-                    var roleList = IsSpa ? GetMenu2(AllModules, "FrameworkRole", new List<FrameworkRole> { adminRole }, null, 3) : GetMenu(AllModules, "_Admin", "FrameworkRole", "Index", new List<FrameworkRole> { adminRole }, null, 3);
-                    var groupList = IsSpa ? GetMenu2(AllModules, "FrameworkGroup", new List<FrameworkRole> { adminRole }, null, 4) : GetMenu(AllModules, "_Admin", "FrameworkGroup", "Index", new List<FrameworkRole> { adminRole }, null, 4);
-                    var menuList = IsSpa ? GetMenu2(AllModules, "FrameworkMenu", new List<FrameworkRole> { adminRole }, null, 5) : GetMenu(AllModules, "_Admin", "FrameworkMenu", "Index", new List<FrameworkRole> { adminRole }, null, 5);
-                    var dpList = IsSpa ? GetMenu2(AllModules, "DataPrivilege", new List<FrameworkRole> { adminRole }, null, 6) : GetMenu(AllModules, "_Admin", "DataPrivilege", "Index", new List<FrameworkRole> { adminRole }, null, 6);
+                    //var logList = IsSpa ? GetMenu2(AllModules, "ActionLog", new List<FrameworkRole> { adminRole }, null, 1) : GetMenu(AllModules, "_Admin", "ActionLog", "Index", new List<FrameworkRole> { adminRole }, null, 1);
+                    //var userList = IsSpa ? GetMenu2(AllModules, "FrameworkUser", new List<FrameworkRole> { adminRole }, null, 2) : GetMenu(AllModules, "_Admin", "FrameworkUser", "Index", new List<FrameworkRole> { adminRole }, null, 2);
+                    //var roleList = IsSpa ? GetMenu2(AllModules, "FrameworkRole", new List<FrameworkRole> { adminRole }, null, 3) : GetMenu(AllModules, "_Admin", "FrameworkRole", "Index", new List<FrameworkRole> { adminRole }, null, 3);
+                    //var menuList = IsSpa ? GetMenu2(AllModules, "FrameworkMenu", new List<FrameworkRole> { adminRole }, null, 4) : GetMenu(AllModules, "_Admin", "FrameworkMenu", "Index", new List<FrameworkRole> { adminRole }, null, 4);
+                    //var dpList = IsSpa ? GetMenu2(AllModules, "DataPrivilege", new List<FrameworkRole> { adminRole }, null, 5) : GetMenu(AllModules, "_Admin", "DataPrivilege", "Index", new List<FrameworkRole> { adminRole }, null, 5);
+
+                    var logList = GetMenu(AllModules, "_Admin", "ActionLog", "Index", new List<FrameworkRole> { adminRole }, null, 1);
+                    var userList = GetMenu(AllModules, "_Admin", "FrameworkUser", "Index", new List<FrameworkRole> { adminRole }, null, 2);
+                    var roleList = GetMenu(AllModules, "_Admin", "FrameworkRole", "Index", new List<FrameworkRole> { adminRole }, null, 3);
+                    var menuList = GetMenu(AllModules, "_Admin", "FrameworkMenu", "Index", new List<FrameworkRole> { adminRole }, null, 4);
+                    var dpList = GetMenu(AllModules, "_Admin", "DataPrivilege", "Index", new List<FrameworkRole> { adminRole }, null, 5);
+
                     if (logList != null)
                     {
-                        systemManagement.Children.AddRange(new FrameworkMenu[] { logList, userList, roleList, groupList, menuList, dpList });
+                        systemManagement.Children.AddRange(new FrameworkMenu[] { logList, userList, roleList, menuList, dpList });
                         Set<FrameworkMenu>().Add(systemManagement);
                     }
 
-                    if(IsSpa == false)
-                    {
-                        var apifolder = GetFolderMenu("Api", new List<FrameworkRole> { adminRole }, null);
-                        apifolder.ShowOnMenu = false;
-                        apifolder.DisplayOrder = 100;
-                        var logList2 = GetMenu2(AllModules, "ActionLog", new List<FrameworkRole> { adminRole }, null, 1) ;
-                        var userList2 = GetMenu2(AllModules, "FrameworkUser", new List<FrameworkRole> { adminRole }, null, 2);
-                        var roleList2 = GetMenu2(AllModules, "FrameworkRole", new List<FrameworkRole> { adminRole }, null, 3);
-                        var groupList2 = GetMenu2(AllModules, "FrameworkGroup", new List<FrameworkRole> { adminRole }, null, 4);
-                        var menuList2 = GetMenu2(AllModules, "FrameworkMenu", new List<FrameworkRole> { adminRole }, null, 5);
-                        var dpList2 = GetMenu2(AllModules, "DataPrivilege", new List<FrameworkRole> { adminRole }, null, 6);
-                        var apis = new FrameworkMenu[] { logList2, userList2, roleList2, groupList2, menuList2, dpList2};
-                        apis.ToList().ForEach(x => { x.ShowOnMenu = false;x.PageName += $"({Program._localizer["BuildinApi"]})"; });
-                        apifolder.Children.AddRange(apis);
-                        Set<FrameworkMenu>().Add(apifolder);
-                    }
+                    //if (IsSpa == false)
+                    //{
+                    //    var apifolder = GetFolderMenu("Api", new List<FrameworkRole> { adminRole }, null);
+                    //    apifolder.ShowOnMenu = false;
+                    //    apifolder.DisplayOrder = 100;
+                    //    var logList2 = GetMenu2(AllModules, "ActionLog", new List<FrameworkRole> { adminRole }, null, 1);
+                    //    var userList2 = GetMenu2(AllModules, "FrameworkUser", new List<FrameworkRole> { adminRole }, null, 2);
+                    //    var roleList2 = GetMenu2(AllModules, "FrameworkRole", new List<FrameworkRole> { adminRole }, null, 3);
+                    //    var menuList2 = GetMenu2(AllModules, "FrameworkMenu", new List<FrameworkRole> { adminRole }, null, 4);
+                    //    var dpList2 = GetMenu2(AllModules, "DataPrivilege", new List<FrameworkRole> { adminRole }, null, 5);
+                    //    var apis = new FrameworkMenu[] { logList2, userList2, roleList2, menuList2, dpList2 };
+                    //    apis.ToList().ForEach(x => { x.ShowOnMenu = false; x.PageName += $"({Program._localizer["BuildinApi"]})"; });
+                    //    apifolder.Children.AddRange(apis);
+                    //    Set<FrameworkMenu>().Add(apifolder);
+                    //}
                 }
                 Set<FrameworkRole>().AddRange(roles);
                 Set<FrameworkUserBase>().AddRange(users);
@@ -457,29 +462,29 @@ namespace WalkingTec.Mvvm.Core
             return menu;
         }
 
-        private FrameworkMenu GetMenu2(List<FrameworkModule> allModules, string controllerName, List<FrameworkRole> allowedRoles, List<FrameworkUserBase> allowedUsers, int displayOrder)
-        {
-            var acts = allModules.Where(x => x.FullName == $"WalkingTec.Mvvm.Admin.Api,{controllerName}" && x.IsApi == true).SelectMany(x => x.Actions).ToList();
-            var rest = acts.Where(x => x.IgnorePrivillege == false).ToList();
-            FrameworkMenu menu = GetMenuFromAction(acts[0], true, allowedRoles, allowedUsers, displayOrder);
-            if (menu != null)
-            {
-                menu.Url = "/" + acts[0].Module.ClassName.ToLower();
-                menu.ModuleName = acts[0].Module.ModuleName;
-                menu.PageName = menu.ModuleName;
-                menu.ActionName = Program._localizer["MainPage"];
-                menu.ClassName = acts[0].Module.FullName;
-                menu.MethodName = null;
-                for (int i = 0; i < rest.Count; i++)
-                {
-                    if (rest[i] != null)
-                    {
-                        menu.Children.Add(GetMenuFromAction(rest[i], false, allowedRoles, allowedUsers, (i + 1)));
-                    }
-                }
-            }
-            return menu;
-        }
+        //private FrameworkMenu GetMenu2(List<FrameworkModule> allModules, string controllerName, List<FrameworkRole> allowedRoles, List<FrameworkUserBase> allowedUsers, int displayOrder)
+        //{
+        //    var acts = allModules.Where(x => x.FullName == $"WalkingTec.Mvvm.Admin.Api,{controllerName}" && x.IsApi == true).SelectMany(x => x.Actions).ToList();
+        //    var rest = acts.Where(x => x.IgnorePrivillege == false).ToList();
+        //    FrameworkMenu menu = GetMenuFromAction(acts[0], true, allowedRoles, allowedUsers, displayOrder);
+        //    if (menu != null)
+        //    {
+        //        menu.Url = "/" + acts[0].Module.ClassName.ToLower();
+        //        menu.ModuleName = acts[0].Module.ModuleName;
+        //        menu.PageName = menu.ModuleName;
+        //        menu.ActionName = Program._localizer["MainPage"];
+        //        menu.ClassName = acts[0].Module.FullName;
+        //        menu.MethodName = null;
+        //        for (int i = 0; i < rest.Count; i++)
+        //        {
+        //            if (rest[i] != null)
+        //            {
+        //                menu.Children.Add(GetMenuFromAction(rest[i], false, allowedRoles, allowedUsers, (i + 1)));
+        //            }
+        //        }
+        //    }
+        //    return menu;
+        //}
 
         private FrameworkMenu GetMenuFromAction(FrameworkAction act, bool isMainLink, List<FrameworkRole> allowedRoles, List<FrameworkUserBase> allowedUsers, int displayOrder = 1)
         {

@@ -229,7 +229,40 @@ namespace WalkingTec.Mvvm.Core
 
         public string ControllerName { get; set; }
 
-        public IStringLocalizer Localizer { get; set; }
+        private IStringLocalizer _localizer;
+        public IStringLocalizer Localizer
+        {
+            get
+            {
+                if (_localizer == null)
+                {
+                    var programtype = this.GetType().Assembly.GetTypes().FirstOrDefault(x => x.Name == "Program");
+                    if (programtype != null)
+                    {
+                        try
+                        {
+                            _localizer =
+                                GlobalServices.GetRequiredService(
+                                    typeof(IStringLocalizer<>).MakeGenericType(programtype)) as IStringLocalizer;
+                        }
+                        catch
+                        {
+                        }
+                    }
+
+                    if (_localizer == null)
+                    {
+                        _localizer = WalkingTec.Mvvm.Core.Program._localizer;
+                    }
+                }
+
+                return _localizer;
+            }
+            set
+            {
+                _localizer = value;
+            }
+        }
         #endregion
 
         #region Event

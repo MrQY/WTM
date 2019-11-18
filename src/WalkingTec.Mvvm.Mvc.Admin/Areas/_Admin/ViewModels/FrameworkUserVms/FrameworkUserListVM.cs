@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -51,9 +51,9 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
         public override IOrderedQueryable<FrameworkUser_View> GetSearchQuery()
         {
             var query = DC.Set<FrameworkUserBase>()
-                .CheckContain(Searcher.ITCode,x=>x.ITCode)
-                .CheckContain(Searcher.Name, x=>x.Name)
-                .CheckEqual(Searcher.IsValid, x=>x.IsValid)
+                .CheckContain(Searcher.ITCode, x => x.ITCode)
+                .CheckContain(Searcher.Name, x => x.Name)
+                .CheckEqual(Searcher.IsValid, x => x.IsValid)
                 .Select(x => new FrameworkUser_View
                 {
                     ID = x.ID,
@@ -62,7 +62,7 @@ namespace WalkingTec.Mvvm.Mvc.Admin.ViewModels.FrameworkUserVms
                     PhotoId = x.PhotoId,
                     CellPhone = x.CellPhone,
                     IsValid = x.IsValid,
-                    RoleName_view = DC.Set<FrameworkRole>().Where(y => x.UserRoles.Select(z => z.RoleId).Contains(y.ID)).Select(y => y.RoleName).ToSpratedString(null,","),
+                    RoleName_view = DC.Set<FrameworkRole>().Where(y => x.UserRoles.Select(z => z.RoleId).Contains(y.ID)).Select(y => y.RoleName).ToSpratedString(null, ","),
                     Sex = x.Sex
                 })
                 .OrderBy(x => x.ITCode);
